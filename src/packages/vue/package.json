@@ -1,0 +1,39 @@
+{
+  "name": "@angsdev/vue-pagestack",
+  "version": "1.0.0",
+  "description": "An animated library to make web sites/apps based on the card shuffle concept or simply make presentations like powerpoints.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "pages", "stack", "pagestack", "slides", "slideshow",
+    "presentation", "animation", "animated", "dynamic",
+    "front-end", "documentation"
+  ],
+  "author": {
+    "name": "Angel Quiñonez",
+    "email": "angel27y27@gmail.com",
+    "url": "https://angsdev.github.io"
+  },
+  "homepage": "",
+  "repository": {
+    "type" : "git",
+    "url" : "github:angsdev/pagestack",
+    "directory": "src/packages/vue"
+  },
+  "funding": [
+    {
+      "type" : "paypal",
+      "url" : "https://www.paypal.com/paypalme/AngelQuinonezS"
+    },
+    {
+      "type" : "airtm",
+      "url" : "angelwc27"
+    }
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "license": "Apache-2.0"
+}
