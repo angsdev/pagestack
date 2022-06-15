@@ -30,7 +30,7 @@ npm i @angsdev/vue-pagestack
 ```
 Then, import the ```createPageStack``` method and you will pass an object with the config:
 ```
-import { createPageStack } from ' @angsdev/vue-pagestack';
+import { createPageStack } from '@angsdev/vue-pagestack';
 export default createPageStack(...configObject);
 ```
 Finally, use the plugin in your vue instantiation:
