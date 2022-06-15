@@ -170,7 +170,7 @@ In case you use scss, you can modify it class names to keep a semantic sense wit
       - Description: Array of tooltips to add to each navigation bar item. Note: It only works if the dynamic is ```true```.
 
 ### Snippets
-Above will be some examples on how to build each necessaty part of the library to work:
+Below will be some examples on how to build each necessary part of the library to work:
 
   - Pages stack:
     ```
