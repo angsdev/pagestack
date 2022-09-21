@@ -1,4 +1,4 @@
-# PageStack
+# Vue PageStack
 
 ## Description
 An animated library based on the cards shuffle concept to make websites/apps or simply presentations like powerpoint.
@@ -7,24 +7,7 @@ An animated library based on the cards shuffle concept to make websites/apps or 
 It doesn't have prerequisites.
 
 ## Installation
-### Global
-There's a global version, you just need to include the global file with a ```<script/>``` tag:
-```
-<script src="pagestack.global.js"/>
-```
-
-### ESM
-There's an ESM version, you just need to import the needed feature:
-```
-// Importing all functions as set.
-import * as pagestack from 'pagestack.esm.js'
-
-// Importing individually.
-import { defineConfig } from 'pagestack.esm.js'
-```
-
-### Vue
-There's a Vue version, and to install it you just need to run in CMD:
+To install it you just need to run in CMD:
 ```
 npm i @angsdev/vue-pagestack
 ```
@@ -45,21 +28,11 @@ app.use(PS)
 
 ## Setup
 To define the library functionality you can stablish custom options or use the default.
-You have to pass an object to methods
-```defineConfig``` in case you'are using ESM (also available in Vue),
-```createPageStack``` in case you're using Vue or global ```pagestack```:
+You have to pass an object to method ```createPageStack``` :
 ```
-// ESM version
-defineConfig(...configObject);
-
-// Global version
-pagestack(...configObject); or window.pagestack(...configObject);
-// or if you want to change later
-pagestack.defineConfig(...configObject);
-
-// Vue version
 createPageStack(...configObject);
-// or already within vue app but it's recommended the previous
+
+// or already within vue app (it's recommended the previousone)
 this.$pagestak.defineConfig(...configObject);
 ```
 ### Notice:
@@ -169,32 +142,8 @@ In case you use scss, you can modify it class names to keep a semantic sense wit
       - Default: ```[]```
       - Description: Array of tooltips to add to each navigation bar item. Note: It only works if the dynamic is ```true```.
 
-### Snippets
-Below will be some examples on how to build each necessary part of the library to work:
-
-  - Pages stack:
-    ```
-    // Pages stack container
-    <article id="ps-pages">
-
-      // Each Page
-      <article id="page1" class="ps-page ps-scrollable">
-        // ...Rest of content
-      </article>
-    </article>
-    ```
-
-  - Pages navigation:
-    ```
-    <ul id="ps-nav" class="right">
-      <li><a href="#page1"><span></span></a></li>
-      <li><a href="#page2"><span></span></a></li>
-      <li><a href="#page3"><span></span></a></li>
-      <li><a href="#page4"><span></span></a></li>
-    </ul>
-    ```
-
-But if you're using ```vue-pagestack``` there are some components:
+### Components
+To make easier to work with this library there are some components, with a default setup:
 
   - Component: ```ps-container```
     - Description: Contain the pages stack container and give you a slot to put inside different pages.
@@ -223,7 +172,7 @@ But if you're using ```vue-pagestack``` there are some components:
 If you have enjoyed using this library and you can and want to support it
 you can do it in the following buttons.
 
-<a href="https://www.paypal.com/paypalme/AngelQuinonezS"><img src="./src/img/paypal-donate-button.png" alt="Donations" width="250" height="100"></a>
+<a href="https://www.paypal.com/paypalme/AngelQuinonezS"><img src="https://raw.githubusercontent.com/angsdev/pagestack/1.0/src/img/paypal-donate-button.png" alt="Donations" width="250" height="100"></a>
 
 ## License
 Copyright 2022 - Angel Quiñonez
