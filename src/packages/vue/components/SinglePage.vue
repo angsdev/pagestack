@@ -1,5 +1,5 @@
 <template>
-  <article :id="id" class="ps-page" :class="[{ 'ps-scrollable': scrollable }, $attrs.class]">
+  <article :id="id" :class="[ 'ps-page', $attrs.class, { 'ps-scrollable': scrollable } ]">
     <slot/>
   </article>
 </template>

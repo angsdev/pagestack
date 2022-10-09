@@ -4,7 +4,7 @@
 An animated library based on the cards shuffle concept to make websites/apps or simply presentations like powerpoint.
 
 ## Prerequisites
-It doesn't have prerequisites.
+To execute this library wihtout any problem it's necessary to have installed ```node-sass``` and ```sass-loader```.
 
 ## Installation
 To install it you just need to run in CMD:
@@ -35,10 +35,20 @@ createPageStack(...configObject);
 // or already within vue app (it's recommended the previousone)
 this.$pagestak.defineConfig(...configObject);
 ```
-### Notice:
-In any case, you must link manually the library styles because it provide both css and scss, to you choose your preferred one.
-<br/>
-In case you use scss, you can modify it class names to keep a semantic sense with your decided customized id|class name but it's NOT RECOMMENDED, so do it under your responsibility.
+
+To initialize the library with the application initialization (recommended) you just have to import the pagestack mixin and add it to the app component:
+```
+import { mixin as pageStackMixin } from '@angsdev/vue-pagestack';
+
+export default {
+  name: 'App',
+  components: {
+    your components here...
+  },
+  mixins: [ pageStackMixin ]
+}
+```
+its made like this to initialize the library only once, keeping a good performance but to initialze the library in different time, you just can play with the method ```defineConfig``` passing the settings object as argument and method ```init``` to initialize the library, all these availables from the object ```$pagestack``` appended to the app object.
 
 ### The config object can contain the following options:
 
@@ -167,6 +177,9 @@ To make easier to work with this library there are some components, with a defau
     - Description: Pages navigation bar item.
     - Attributes:
       - anchor: The anchor which will be binded with each page.
+
+## Demo
+If you want to see a demo of how this library works, you can take a look at: https://angsdev.github.io
 
 ## Donations
 If you have enjoyed using this library and you can and want to support it

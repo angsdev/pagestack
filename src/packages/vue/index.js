@@ -1,5 +1,6 @@
 'use strict';
 /*============================ Imports ============================*/
+import mixin from './mixin';
 import PagesContainer from './components/PagesContainer.vue';
 import SinglePage from './components/SinglePage.vue';
 import NavBar from './components/NavBar.vue';
@@ -30,8 +31,8 @@ const options = {
   keyboardScrolling: true,
   hashHistorial: false,
   // hooks
-  beforeChange: null,
-  afterChange: null
+  beforeSlide: null,
+  afterSlide: null
 };
 const isTouch = ('ontouchstart' in window) || (navigator.msMaxTouchPoints > 0) || (navigator.maxTouchPoints);
 const coord = { touchStartY: 0, touchStartX: 0, touchEndY: 0, touchEndX: 0 };
@@ -54,8 +55,8 @@ const defineConfig = (customOptions) => {
   Object.assign(options, customOptions);
   options.navigation = Object.assign({
     dynamic: false,
-    position: 'right',
     container: '#ps-nav',
+    position: 'right',
     class: [],
     tooltips: []
   }, customOptions.navigation);
@@ -134,7 +135,7 @@ const moveTo = (page) => {
  * Initialization.
  * @returns {void}
  */
-const init = () => {
+const init = function(){
 
   // Main containers
   $container = document.querySelector(options.container);
@@ -160,14 +161,16 @@ const init = () => {
       if(!i && !$active) $el.classList.add('active');
     }
     return resolve();
-  }).then(() => {
+  })
+  .then(() => {
 
     if($navbar){
 
       const $activePageIndex = $pages.findIndex(el => el.classList.contains('active'));
       $listItems[$activePageIndex].querySelector('a').classList.add('active');
     }
-  }).catch(console.error);
+  })
+  .catch(console.error);
 
   /**
    * Initialize the scrolling
@@ -225,26 +228,6 @@ const init = () => {
       scrollToAnchor($anchor);
     }
   });
-
-  document.addEventListener('touchstart', (evt) => {
-
-    const $el = evt.target;
-
-    if($el.closest('#ps-dots-nav ul li')){
-      evt.stopPropagation();
-
-      const $li = $el.closest('#ps-dots-nav ul li');
-      const index = Array.from($li.parentElement.children).findIndex(li => (li === $li));
-      scrollPage($pages[index]);
-    }
-
-    if(options.menu && $el.matches(`${options.menu} [data-anchor]`) || $el.closest(`${options.menu} [data-anchor]`)){
-      evt.stopPropagation();
-
-      const $anchor = $el.closest('[data-anchor]').dataset['anchor'];
-      scrollToAnchor($anchor);
-    }
-  });
 };
 
 /*-------------------------------------------------------------------------------
@@ -257,9 +240,9 @@ const init = () => {
  * @param {number} pageIndex
  * @returns {void}
  */
-function activateNav(name, pageIndex){
+function handleNav(name, pageIndex){
 
-  if(options.navigation){
+  if(options.navigation || options.navigation.dynamic){
     
     $navAnchors.find(el => el.classList.contains('active')).classList.remove('active');
     if(name) $navAnchors.find(el => el.href.includes(`#${name}`)).classList.add('active');
@@ -300,7 +283,7 @@ function performMovement(proc){
   
   transformContainer(proc.animatePage, proc.translationClass, proc.movementDirection);
   proc.pagesToMove.forEach(el => transformContainer(el, proc.translationClass, proc.movementDirection));
-  setTimeout(() => afterPageChange(proc), options.scrollingSpeed);
+  setTimeout(() => afterSlide(proc), options.scrollingSpeed);
 }
 
 /**
@@ -383,11 +366,11 @@ function scrollPage(destinyPage){
   proc.animatePage = (proc.movementDirection === 'next') ? proc.activePage : destinyPage;
   
   // Hook
-  beforePageChange(proc);
+  beforeSlide(proc);
 
   // Movement execution
   performMovement(proc);
-  activateNav(proc.destinyAnchor, proc.destinyPageIndex);
+  if(options.navigation || options.navigation.dynamic) handleNav(proc.destinyAnchor, proc.destinyPageIndex);
   
   // Scroll timers
   let timeNow = new Date().getTime();
@@ -479,18 +462,18 @@ function isScrollable(activePage){
  * Actions to execute after a secion is loaded
  * @param {object} proc
  */
-function beforePageChange(proc){
+function beforeSlide(proc){
 
-  (options.beforeChange instanceof Function) && options.beforeChange.call(this, proc.activePageIndex, (proc.destinyPageIndex + 1), proc.yMovement);
+  (options.beforeSlide instanceof Function) && options.beforeSlide.call(this, proc.activePageIndex, (proc.destinyPageIndex + 1), proc.yMovement);
 }
 
 /**
  * Actions to execute after a secion is loaded
  * @param {object} proc
  */
-function afterPageChange(proc){
+function afterSlide(proc){
 
-  (options.afterChange instanceof Function) && options.afterChange.call(this, proc.anchorLink, (proc.destinyPageIndex + 1));
+  (options.afterSlide instanceof Function) && options.afterSlide.call(this, proc.anchorLink, (proc.destinyPageIndex + 1));
 }
 
 /*-------------------------------------------------------------------------------
@@ -695,8 +678,8 @@ function addMouseWheelHandler(){
 
   if($container.addEventListener){
     
-    $container.addEventListener('mousewheel', mouseWheelHandler, false); // IE9, Chrome, Safari, Opera
-    $container.addEventListener('wheel', mouseWheelHandler, false); // Firefox
+    $container.addEventListener('mousewheel', mouseWheelHandler, { passive: true }); // IE9, Chrome, Safari, Opera
+    $container.addEventListener('wheel', mouseWheelHandler, { passive: true }); // Firefox
   }
   else $container.attachEvent('onmousewheel', mouseWheelHandler); // IE 6/7/8
 }
@@ -710,8 +693,8 @@ function removeMouseWheelHandler(){
     
   if($container.addEventListener){
 
-    $container.removeEventListener('mousewheel', mouseWheelHandler, false); // IE9, Chrome, Safari, Opera
-    $container.removeEventListener('wheel', mouseWheelHandler, false); // Firefox
+    $container.removeEventListener('mousewheel', mouseWheelHandler); // IE9, Chrome, Safari, Opera
+    $container.removeEventListener('wheel', mouseWheelHandler); // Firefox
   }
   else $container.detachEvent('onmousewheel', mouseWheelHandler); // IE 6/7/8
 }
@@ -726,11 +709,12 @@ function addTouchHandler(){
 
     // Microsoft pointers
     const pointer = getMSPointer();
-    $container[pointer.down] = touchStartHandler;
-    $container[pointer.move] = touchStartHandler;
-    
-    $container.ontouchstart = touchStartHandler;
-    $container.ontouchmove = touchMoveHandler;
+    /*$container[pointer.down] = touchStartHandler;
+    $container[pointer.move] = touchStartHandler;*/
+    $container.addEventListener(pointer.down, touchStartHandler, { passive: true });
+    $container.addEventListener(pointer.move, touchStartHandler, { passive: true });
+    $container.addEventListener('touchstart', touchStartHandler, { passive: true });
+    $container.addEventListener('touchmove', touchMoveHandler, { passive: true });
   }
 }
 
@@ -744,11 +728,12 @@ function removeTouchHandler(){
 
     // Microsoft pointers
     const pointer = getMSPointer();
-    $container[pointer.down] = null;
-    $container[pointer.move] = null;
-
-    $container.ontouchstart = null;
-    $container.ontouchmove = null;
+    /*$container[pointer.down] = null;
+    $container[pointer.move] = null;*/
+    $container.removeEventListener(pointer.down, touchStartHandler);
+    $container.removeEventListener(pointer.move, touchStartHandler);
+    $container.removeEventListener('touchstart', touchStartHandler);
+    $container.removeEventListener('touchmove', touchMoveHandler);
   }
 }
 
@@ -778,7 +763,7 @@ function hashChangeHandler(){
   VueJS installer
 -------------------------------------------------------------------------------*/
 
-const createPageStack = (customOptions = {}) => ({
+const createPageStack = (options = {}) => ({
   install(app){
     
     app.component('ps-container', PagesContainer);
@@ -786,6 +771,7 @@ const createPageStack = (customOptions = {}) => ({
     app.component('ps-nav', NavBar);
     app.component('ps-nav-item', NavBarItem);
     app.config.globalProperties.$pagestack = {
+      options,
       defineConfig,
       setAllowScrolling,
       setScrollingSpeed,
@@ -796,20 +782,7 @@ const createPageStack = (customOptions = {}) => ({
       moveTo,
       init
     };
-    app.mixin({
-      data(){
-        return {}
-      },
-      methods: {
-
-      },
-      mounted(){
-
-        defineConfig(customOptions);
-        init();
-      }
-    });
   }
 });
 
-export { createPageStack, defineConfig, setAllowScrolling, setScrollingSpeed, setKeyboardScrolling, setMouseWheelScrolling, moveToPrevPage, moveToNextPage, moveTo, init };
+export { createPageStack, mixin, defineConfig, setAllowScrolling, setScrollingSpeed, setKeyboardScrolling, setMouseWheelScrolling, moveToPrevPage, moveToNextPage, moveTo, init };
