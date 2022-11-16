@@ -34,21 +34,11 @@ const options = {
   beforeSlide: null,
   afterSlide: null
 };
-const isTouch = ('ontouchstart' in window) || ('msMaxTouchPoints' in navigator && navigator.msMaxTouchPoints > 0) || (navigator.maxTouchPoints);
+const isTouch = ('ontouchstart' in window) || (navigator.msMaxTouchPoints > 0) || (navigator.maxTouchPoints);
 const coord = { touchStartY: 0, touchStartX: 0, touchEndY: 0, touchEndX: 0 };
-let scrollings = [], 
-    lastAnimation = 0, 
-    lastScrolledDestiny, 
-    prevTime = new Date().getTime();
-
+let scrollings = [], lastAnimation = 0, lastScrolledDestiny, prevTime = new Date().getTime();
 // Element containers
-let $container,
-    $pages,
-    $firstPage,
-    $lastPage,
-    $navbar,
-    $listItems,
-    $navAnchors;
+let $container, $pages, $firstPage, $lastPage, $navbar, $listItems, $navAnchors;
 
 /*-------------------------------------------------------------------------------
   Accesible methods
@@ -65,8 +55,8 @@ const defineConfig = (customOptions) => {
   Object.assign(options, customOptions);
   options.navigation = Object.assign({
     dynamic: false,
-    position: 'right',
     container: '#ps-nav',
+    position: 'right',
     class: [],
     tooltips: []
   }, customOptions.navigation);
@@ -86,14 +76,14 @@ const setAllowScrolling = (value) => {
 /**
  * Defines the scrolling speed.
  * @param {number} value
- * @returns {number}
+ * @returns {void}
  */
 const setScrollingSpeed = (value) => (options.scrollingSpeed = value);
 
 /**
  * Adds or remove the possiblity of scrolling through sections by using the keyboard arrow keys
  * @param {boolean} value
- * @returns {boolean}
+ * @returns {void}
  */
 const setKeyboardScrolling = (value) => (options.keyboardScrolling = value);
 
@@ -111,7 +101,7 @@ const setMouseWheelScrolling = (value) => ((value) ? addMouseWheelHandler() : re
 const moveToPrevPage = () => {
 
   const $active = $pages.find(el => el.classList.contains('active'));
-  let $prev = $pages[$pages.indexOf($active) - 1];
+  let $prev = ($active.previousElementSibling && $active.previousElementSibling.classList.contains(options.pageSelector.replace(/^\.|#/, ''))) && $active.previousElementSibling;
   // If there's no more pages above and loopTop option is enabled then looping to the bottom
   if(!$prev && options.loopTop) $prev = $lastPage;
   if($prev) scrollPage($prev);
@@ -124,7 +114,7 @@ const moveToPrevPage = () => {
 const moveToNextPage = () => {
 
   const $active = $pages.find(el => el.classList.contains('active'));
-  let $next = $pages[$pages.indexOf($active) + 1];
+  let $next = ($active.nextElementSibling && $active.nextElementSibling.classList.contains(options.pageSelector.replace(/^\.|#/, ''))) && $active.nextElementSibling;
   // If there's no more pages below and loopTop option is enabled then looping to the top
   if(!$next && options.loopBottom) $next = $firstPage;
   if($next) scrollPage($next);
@@ -137,7 +127,7 @@ const moveToNextPage = () => {
  */
 const moveTo = (page) => {
 
-  const destiny = (typeof(page) != 'number') ? page : $pages[page - 1];
+  const destiny = (isNaN(page)) ? page : $pages[page - 1];
   if(destiny) scrollPage(destiny);
 };
 
@@ -154,7 +144,7 @@ const init = function(){
   $lastPage = $pages[$pages.length - 1];
   // Nav containers
   $navbar = document.querySelector(options.navigation.container);
-  $listItems = Array.from($navbar.querySelectorAll('li, [anchor]'));
+  $listItems = Array.from($navbar.querySelectorAll('li'));
   $navAnchors = $listItems.map(el => el.querySelector('a'));
 
   /**
@@ -166,19 +156,21 @@ const init = function(){
     for(let i = 0, zIndex = $pages.length, length = $pages.length; i < length; i++, zIndex--){
 
       const $el = $pages[i];
-      $el.style.zIndex = zIndex.toString();
+      $el.style.zIndex = zIndex;
       // If there's no active page, the 1st one will be the default one
       if(!i && !$active) $el.classList.add('active');
     }
     return resolve();
-  }).then(() => {
+  })
+  .then(() => {
 
     if($navbar){
 
       const $activePageIndex = $pages.findIndex(el => el.classList.contains('active'));
       $listItems[$activePageIndex].querySelector('a').classList.add('active');
     }
-  }).catch(console.error);
+  })
+  .catch(console.error);
 
   /**
    * Initialize the scrolling
@@ -198,60 +190,45 @@ const init = function(){
   /**
    * Sliding with arrow keys, both, vertical and horizontal.
    */
-  if(options.keyboardScrolling) keyboardNavigation();
+  if(options.keyboardScrolling){
+    
+    window.addEventListener('keydown', (evt) => {
+
+      const $active = $pages.find(el => el.classList.contains('active'));
+      if(!isPageTransitionRunning() && evt.target.matches('body, #app')){
+        
+        // If keyboard scrolling is enabled, move the main page with the keyboard arrows
+        if(evt.keyCode === 38 || evt.keyCode === 33 || evt.keyCode === 37) (isScrolled('top', $active)) && moveToPrevPage();
+        else if(evt.keyCode === 40 || evt.keyCode === 34 || evt.keyCode === 39) (isScrolled('bottom', $active)) && moveToNextPage();
+        else if(evt.keyCode === 36) moveTo($firstPage);
+        else if(evt.keyCode === 35) moveTo($lastPage);
+      }
+    });
+  }
  
   /**
    * Scrolls to the section when clicking the navigation bullet.
    */
-  document.addEventListener('click', delegatedClickEvents);
-  document.addEventListener('touchstart', delegatedClickEvents);
-};
+  document.addEventListener('click', (evt) => {
+    
+    const $el = evt.target;
 
-/**
-  * Click and touch delegated events.
-  * @returns {void}
-  */
- const delegatedClickEvents = (evt) => {
+    if($el.closest(`${options.navigation.container} li`)){
+      preventAndStop(evt);
 
-  const $el = evt.target;
+      const $li = $el.closest(`${options.navigation.container} li`);
+      const index = Array.from($li.parentElement.children).findIndex(li => (li === $li));
+      scrollPage($pages[index]);
+    }
 
-  const $anchorClose = $el.closest(`${options.navigation?.container} li,
-                                    ${options.navigation?.container} [anchor]`);
+    if(options.menu && $el.matches(`${options.menu} [data-anchor]`) || $el.closest(`${options.menu} [data-anchor]`)){
+      preventAndStop(evt);
 
-  if($anchorClose){
-
-    const $li = $anchorClose;
-    const index = Array.from($li.parentElement.children).findIndex(li => (li === $li));
-    scrollPage($pages[index]);
-  }
-
-  if(options.menu && $el.matches(`${options.menu} [data-anchor]`) || $el.closest(`${options.menu} [data-anchor]`)){
-    evt.stopPropagation();
-
-    const $anchor = ($el.closest('[data-anchor]'))?.dataset['anchor'];
-    scrollToAnchor($anchor);
-  }
-}
-
-/**
- * Handle the behavior when somebody try to navigate through the keyboard arrows.
- * @returns {void}
- */
-const keyboardNavigation = () => {
-
-  window.addEventListener('keydown', (evt) => {
-
-    const $active = $pages.find(el => el.classList.contains('active'));
-    if(!isPageTransitionRunning() && evt.target.matches('body')){
-      
-      // If keyboard scrolling is enabled, move the main page with the keyboard arrows
-      if(evt.keyCode === 38 || evt.keyCode === 33 || evt.keyCode === 37) (isScrolled('top', $active)) && moveToPrevPage();
-      else if(evt.keyCode === 40 || evt.keyCode === 34 || evt.keyCode === 39) (isScrolled('bottom', $active)) && moveToNextPage();
-      else if(evt.keyCode === 36) moveTo($firstPage);
-      else if(evt.keyCode === 35) moveTo($lastPage);
+      const $anchor = $el.closest('[data-anchor]').dataset['anchor'];
+      scrollToAnchor($anchor);
     }
   });
-}
+};
 
 /*-------------------------------------------------------------------------------
   Core methods
@@ -265,7 +242,7 @@ const keyboardNavigation = () => {
  */
 function handleNav(name, pageIndex){
 
-  if(options.navigation){
+  if(options.navigation || options.navigation.dynamic){
     
     $navAnchors.find(el => el.classList.contains('active')).classList.remove('active');
     if(name) $navAnchors.find(el => el.href.includes(`#${name}`)).classList.add('active');
@@ -306,7 +283,7 @@ function performMovement(proc){
   
   transformContainer(proc.animatePage, proc.translationClass, proc.movementDirection);
   proc.pagesToMove.forEach(el => transformContainer(el, proc.translationClass, proc.movementDirection));
-  setTimeout(() => afterPageChange(proc), options.scrollingSpeed);
+  setTimeout(() => afterSlide(proc), options.scrollingSpeed);
 }
 
 /**
@@ -321,14 +298,14 @@ function getPagesToMove(proc){
 
     pagesToMove = $pages.filter((el, index) => {
 
-      return (index < $pages.findIndex(subEl => (subEl === proc.destinyPage))) ? el : false;
+      if(index < $pages.findIndex(subEl => (subEl === proc.destinyPage))) return el;
     });
   }
   else {
     
     pagesToMove = $pages.filter((el, index) => {
 
-      return (index > $pages.findIndex(subEl => (subEl === proc.destinyPage))) ? el : false;
+      if(index > $pages.findIndex(subEl => (subEl === proc.destinyPage))) return el;
     })
   }
   return pagesToMove;
@@ -389,7 +366,7 @@ function scrollPage(destinyPage){
   proc.animatePage = (proc.movementDirection === 'next') ? proc.activePage : destinyPage;
   
   // Hook
-  beforePageChange(proc);
+  beforeSlide(proc);
 
   // Movement execution
   performMovement(proc);
@@ -444,7 +421,8 @@ function isPageTransitionRunning(){
  */
 function isScrolled(type, scrollable){
 
-  return (type === 'top') ? !scrollable.scrollTop : ((scrollable.scrollTop + scrollable.offsetHeight) + 1) > scrollable.scrollHeight;
+  if(type === 'top') return !scrollable.scrollTop;
+  else if(type === 'bottom') return ((scrollable.scrollTop + scrollable.offsetHeight) + 1) > scrollable.scrollHeight;
 }
 
 /**
@@ -461,7 +439,6 @@ function scrolling(type, scrollable){
   if(scrollable){
     // Scroll if it's scrollable and the scrollbar is at the start/end
     if(isScrolled(check, scrollable)) scroll();
-    return;
   }
   // Moved up/down
   else scroll();
@@ -485,18 +462,18 @@ function isScrollable(activePage){
  * Actions to execute after a secion is loaded
  * @param {object} proc
  */
-function beforePageChange(proc){
+function beforeSlide(proc){
 
-  (options.beforeSlide instanceof Function) && options.beforeSlide(proc);
+  (options.beforeSlide instanceof Function) && options.beforeSlide.call(this, proc.activePageIndex, (proc.destinyPageIndex + 1), proc.yMovement);
 }
 
 /**
  * Actions to execute after a secion is loaded
  * @param {object} proc
  */
-function afterPageChange(proc){
+function afterSlide(proc){
 
-  (options.afterSlide instanceof Function) && options.afterSlide(proc);
+  (options.afterSlide instanceof Function) && options.afterSlide.call(this, proc.anchorLink, (proc.destinyPageIndex + 1));
 }
 
 /*-------------------------------------------------------------------------------
@@ -621,6 +598,7 @@ function getTouchEventCoordinates(evt){
 function setTouchCoordinates(evt, position){
 
   const touchEvent = getTouchEventCoordinates(evt);
+  position = position.replace(/^\w{1}/, (c) => c.toUpperCase());
   coord[`touch${position}Y`] = touchEvent.y;
   coord[`touch${position}X`] = touchEvent.x;
 }
@@ -632,7 +610,7 @@ function setTouchCoordinates(evt, position){
  */
 function touchStartHandler(evt){
 
-  if(isReallyTouch(evt)) setTouchCoordinates(evt, 'Start');
+  if(isReallyTouch(evt)) setTouchCoordinates(evt, 'start');
 }
 
 /**
@@ -650,7 +628,6 @@ function calculateAxisTouchMovement(axis, scrollable){
 
     return (touchStart > touchEnd) ? 'down' : ((touchEnd > touchStart) ? 'up' : false);
   }
-  return false;
 }
 
 /**
@@ -668,7 +645,7 @@ function touchMoveHandler(evt){
     if(!scrollable) evt.preventDefault();
     if(scrollable && !isPageTransitionRunning()){
 
-      setTouchCoordinates(evt, 'End');
+      setTouchCoordinates(evt, 'end');
       const scrollIsHorizontal = getDirection(options.direction) === 'left' || getDirection(options.direction) === 'right';
       const direction = (scrollIsHorizontal && Math.abs(coord.touchStartX - coord.touchEndX) > Math.abs(coord.touchStartY - coord.touchEndY)) // X movement bigger than Y movement?
                          ? calculateAxisTouchMovement('x', scrollable)
@@ -683,17 +660,28 @@ function touchMoveHandler(evt){
 -------------------------------------------------------------------------------*/
 
 /**
+ * Event prevention and progagation one line sentence.
+ * @param {event} evt
+ * @returns {void}
+ */
+function preventAndStop(evt){
+  evt['preventDefault']();
+  evt['stopPropagation']();
+}
+
+/**
  * Adds the auto scrolling action for the mouse wheel and tackpad.
  * After this function is called, the mousewheel and trackpad movements will scroll through sections.
  * @returns {void}
  */
 function addMouseWheelHandler(){
 
-  if('attachEvent' in $container) $container.attachEvent('onmousewheel', mouseWheelHandler); // IE 6/7/8
-  else {
-    $container.addEventListener('mousewheel', mouseWheelHandler, false); // IE9, Chrome, Safari, Opera
-    $container.addEventListener('wheel', mouseWheelHandler, false); // Firefox
+  if($container.addEventListener){
+    
+    $container.addEventListener('mousewheel', mouseWheelHandler, { passive: true }); // IE9, Chrome, Safari, Opera
+    $container.addEventListener('wheel', mouseWheelHandler, { passive: true }); // Firefox
   }
+  else $container.attachEvent('onmousewheel', mouseWheelHandler); // IE 6/7/8
 }
 
 /**
@@ -703,11 +691,12 @@ function addMouseWheelHandler(){
  */
 function removeMouseWheelHandler(){
     
-  if('detachEvent' in $container) $container.detachEvent('onmousewheel', mouseWheelHandler); // IE 6/7/8
-  else{
-    $container.removeEventListener('mousewheel', mouseWheelHandler, false); // IE9, Chrome, Safari, Opera
-    $container.removeEventListener('wheel', mouseWheelHandler, false); // Firefox
+  if($container.addEventListener){
+
+    $container.removeEventListener('mousewheel', mouseWheelHandler); // IE9, Chrome, Safari, Opera
+    $container.removeEventListener('wheel', mouseWheelHandler); // Firefox
   }
+  else $container.detachEvent('onmousewheel', mouseWheelHandler); // IE 6/7/8
 }
 
 /**
@@ -720,11 +709,12 @@ function addTouchHandler(){
 
     // Microsoft pointers
     const pointer = getMSPointer();
-    $container[pointer.down] = touchStartHandler;
-    $container[pointer.move] = touchMoveHandler;
-    
-    $container.ontouchstart = touchStartHandler;
-    $container.ontouchmove = touchMoveHandler;
+    /*$container[pointer.down] = touchStartHandler;
+    $container[pointer.move] = touchStartHandler;*/
+    $container.addEventListener(pointer.down, touchStartHandler, { passive: true });
+    $container.addEventListener(pointer.move, touchStartHandler, { passive: true });
+    $container.addEventListener('touchstart', touchStartHandler, { passive: true });
+    $container.addEventListener('touchmove', touchMoveHandler, { passive: true });
   }
 }
 
@@ -738,11 +728,12 @@ function removeTouchHandler(){
 
     // Microsoft pointers
     const pointer = getMSPointer();
-    $container[pointer.down] = null;
-    $container[pointer.move] = null;
-
-    $container.ontouchstart = null;
-    $container.ontouchmove = null;
+    /*$container[pointer.down] = null;
+    $container[pointer.move] = null;*/
+    $container.removeEventListener(pointer.down, touchStartHandler);
+    $container.removeEventListener(pointer.move, touchStartHandler);
+    $container.removeEventListener('touchstart', touchStartHandler);
+    $container.removeEventListener('touchmove', touchMoveHandler);
   }
 }
 
@@ -762,7 +753,7 @@ function hashChangeHandler(){
      */
     if(pageAnchor !== lastScrolledDestiny){
 
-      const page = ((typeof(pageAnchor) != 'number') ? document.getElementById(pageAnchor) : $pages[pageAnchor-1]);
+      const page = (isNaN(pageAnchor)) ? document.getElementById(pageAnchor) : $pages[pageAnchor-1];
       scrollPage(page);
     }
   }

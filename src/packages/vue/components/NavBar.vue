@@ -24,18 +24,13 @@
 
 <style lang="scss">
 
-
 #ps-nav {
   position: fixed;
-  height: -webkit-fit-content;
-  height:    -moz-fit-content;
-  height:         fit-content;
-  width: -webkit-fit-content;
-  width:    -moz-fit-content;
-  width:         fit-content;
+  height: fit-content;
+  width: fit-content;
   padding-left: 0;
   opacity: 1;
-  z-index: 1000;
+  z-index: 100;
 
   &.left,
   &.right {
@@ -57,8 +52,7 @@
   &.top {
     top: 17px;
 
-    li,
-    [anchor] {
+    li {
       display: inline-block;
     }
   }
@@ -68,13 +62,11 @@
   &.bottom {
     bottom: 17px;
 
-    li,
-    [anchor] {
+    li {
       display: inline-block;
     }
   }
-  li,
-  [anchor] {
+  li {
     position: relative;
     display: block;
     width: 14px;

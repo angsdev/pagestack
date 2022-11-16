@@ -2,48 +2,31 @@ html,
 body {
   margin: 0;
   padding: 0;
-	overscroll-behavior-y: contain;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 #pages {
   overflow: hidden;
-  -ms-touch-action: none;  /* Touch detection for Windows 8 */
-      touch-action: none;   /* IE 11 on Windows Phone 8.1*/
+  touch-action: none;
 }
 #pages .ps-page {
   position: absolute;
   width: 100%;
   height: 100%;
   -webkit-backface-visibility: hidden;
-          backface-visibility: hidden;
-          -webkit-transition: all 1s cubic-bezier(.55,.085,0,.99);
-              -moz-transition: all 1s cubic-bezier(.55,.085,0,.99);
-                -o-transition: all 1s cubic-bezier(.55,.085,0,.99);
-                   transition: all 1s cubic-bezier(.55,.085,0,.99);
+  backface-visibility: hidden;
+  transition: all 1s cubic-bezier(0.55, 0.085, 0, 0.99);
 }
 #pages .ps-page.scrolled-left {
-  -webkit-transform: translate3d(-100%, 0, 0);
-     -moz-transform: translate3d(-100%, 0, 0);
-      -ms-transform: translate3d(-100%, 0, 0);
-          transform: translate3d(-100%, 0, 0);
+  transform: translate3d(-100%, 0, 0);
 }
 #pages .ps-page.scrolled-up {
-  -webkit-transform: translate3d(0, -100%, 0);
-     -moz-transform: translate3d(0, -100%, 0);
-      -ms-transform: translate3d(0, -100%, 0);
-          transform: translate3d(0, -100%, 0);
+  transform: translate3d(0, -100%, 0);
 }
 #pages .ps-page.scrolled-right {
-  -webkit-transform: translate3d(100%, 0, 0);
-     -moz-transform: translate3d(100%, 0, 0);
-      -ms-transform: translate3d(100%, 0, 0);
-          transform: translate3d(100%, 0, 0);
+  transform: translate3d(100%, 0, 0);
 }
 #pages .ps-page.scrolled-down {
-  -webkit-transform: translate3d(0, 100%, 0);
-     -moz-transform: translate3d(0, 100%, 0);
-      -ms-transform: translate3d(0, 100%, 0);
-          transform: translate3d(0, 100%, 0);
+  transform: translate3d(0, 100%, 0);
 }
 #pages .ps-page.ps-scrollable {
   height: 100%;
@@ -52,10 +35,6 @@ body {
 #pages .ps-page.ps-table {
   display: table;
 }
-
-/*
-Enables vertical centering by wrapping the content and the use of table and table-cell
-*/
 #pages .ps-page.ps-table .ps-tableCell {
   display: table-cell;
   width: 100%;
@@ -65,14 +44,14 @@ Enables vertical centering by wrapping the content and the use of table and tabl
 #ps-nav {
   position: fixed;
   height: -webkit-fit-content;
-  height:    -moz-fit-content;
-  height:         fit-content;
+  height: -moz-fit-content;
+  height: fit-content;
   width: -webkit-fit-content;
-  width:    -moz-fit-content;
-  width:         fit-content;
+  width: -moz-fit-content;
+  width: fit-content;
   padding-left: 0;
   opacity: 1;
-  z-index: 1000;
+  z-index: 0;
 }
 #ps-nav.left,
 #ps-nav.right {
@@ -94,8 +73,7 @@ Enables vertical centering by wrapping the content and the use of table and tabl
 #ps-nav.top {
   top: 17px;
 }
-#ps-nav.top li,
-#ps-nav.top [anchor] {
+#ps-nav.top li {
   display: inline-block;
 }
 #ps-nav.right {
@@ -104,12 +82,10 @@ Enables vertical centering by wrapping the content and the use of table and tabl
 #ps-nav.bottom {
   bottom: 17px;
 }
-#ps-nav.bottom li,
-#ps-nav.bottom [anchor] {
+#ps-nav.bottom li {
   display: inline-block;
 }
-#ps-nav li,
-#ps-nav [anchor] {
+#ps-nav li {
   position: relative;
   display: block;
   width: 14px;
@@ -117,14 +93,12 @@ Enables vertical centering by wrapping the content and the use of table and tabl
   margin: 7px;
   z-index: 1;
 }
-#ps-nav li:hover > .ps-tooltip,
-#ps-nav [anchor]:hover > .ps-tooltip {
+#ps-nav li:hover > .ps-tooltip {
   visibility: visible;
   opacity: 1;
-  transition: visibility 0s, opacity .3s ease;
+  transition: visibility 0s, opacity 0.3s ease;
 }
-#ps-nav li a,
-#ps-nav [anchor] a {
+#ps-nav li a {
   position: relative;
   display: block;
   width: 100%;
@@ -133,12 +107,10 @@ Enables vertical centering by wrapping the content and the use of table and tabl
   cursor: pointer;
   z-index: 1;
 }
-#ps-nav li a.active span,
-#ps-nav [anchor] a.active span {
+#ps-nav li a.active span {
   background: #333;
 }
-#ps-nav li a span,
-#ps-nav [anchor] a span {
+#ps-nav li a span {
   position: absolute;
   width: 8px;
   height: 8px;
@@ -149,8 +121,7 @@ Enables vertical centering by wrapping the content and the use of table and tabl
   border-radius: 50%;
   z-index: 1;
 }
-#ps-nav li .ps-tooltip,
-#ps-nav [anchor] .ps-tooltip {
+#ps-nav li .ps-tooltip {
   position: absolute;
   display: block;
   max-width: 220px;
@@ -163,11 +134,9 @@ Enables vertical centering by wrapping the content and the use of table and tabl
   opacity: 0;
   transition: visibility 0.3s, opacity 0.3s ease;
 }
-#ps-nav li .ps-tooltip.right,
-#ps-nav [anchor] .ps-tooltip.right {
+#ps-nav li .ps-tooltip.right {
   right: 20px;
 }
-#ps-nav li .ps-tooltip.left,
-#ps-nav [anchor] .ps-tooltip.left {
+#ps-nav li .ps-tooltip.left {
   left: 20px;
 }
