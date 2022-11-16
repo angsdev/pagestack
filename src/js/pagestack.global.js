@@ -22,20 +22,30 @@
       anchors: [],
       scrollingSpeed: 700,
       touchSensitivity: 5,
-      loopTop: false,
       loopBottom: false,
+      loopTop: false,
       keyboardScrolling: true,
       hashHistorial: false,
       // hooks
-      beforeChange: null,
-      afterChange: null
+      beforeSlide: null,
+      afterSlide: null
     };
-    const isTouch = ('ontouchstart' in window) || (navigator.msMaxTouchPoints > 0) || (navigator.maxTouchPoints);
+    const isTouch = ('ontouchstart' in window) || ('msMaxTouchPoints' in navigator && navigator.msMaxTouchPoints > 0) || (navigator.maxTouchPoints);
     const coord = { touchStartY: 0, touchStartX: 0, touchEndY: 0, touchEndX: 0 };
     const PS = win.pagestack;
-    let scrollings = [], lastAnimation = 0, lastScrolledDestiny, prevTime = new Date().getTime();
+    let scrollings = [],
+        lastAnimation = 0,
+        lastScrolledDestiny,
+        prevTime = new Date().getTime();
+
     // Element containers
-    let $container, $pages, $firstPage, $lastPage, $navbar, $listItems, $navAnchors;
+    let $container,
+        $pages,
+        $firstPage,
+        $lastPage,
+        $navbar,
+        $listItems,
+        $navAnchors;
 
     /*-------------------------------------------------------------------------------
       Accesible methods
@@ -73,14 +83,14 @@
     /**
      * Defines the scrolling speed.
      * @param {number} value
-     * @returns {void}
+     * @returns {number}
      */
     PS.setScrollingSpeed = (value) => (options.scrollingSpeed = value);
 
     /**
      * Adds or remove the possiblity of scrolling through sections by using the keyboard arrow keys
      * @param {boolean} value
-     * @returns {void}
+     * @returns {boolean}
      */
     PS.setKeyboardScrolling = (value) => (options.keyboardScrolling = value);
 
@@ -98,7 +108,7 @@
     PS.moveToPrevPage = () => {
 
       const $active = $pages.find(el => el.classList.contains('active'));
-      let $prev = ($active.previousElementSibling && $active.previousElementSibling.classList.contains(options.pageSelector.replace(/^\.|#/, ''))) && $active.previousElementSibling;
+      let $prev = $pages[$pages.indexOf($active) - 1];
       // If there's no more pages above and loopTop option is enabled then looping to the bottom
       if(!$prev && options.loopTop) $prev = $lastPage;
       if($prev) scrollPage($prev);
@@ -111,7 +121,7 @@
     PS.moveToNextPage = () => {
 
       const $active = $pages.find(el => el.classList.contains('active'));
-      let $next = ($active.nextElementSibling && $active.nextElementSibling.classList.contains(options.pageSelector.replace(/^\.|#/, ''))) && $active.nextElementSibling;
+      let $next = $pages[$pages.indexOf($active) + 1];
       // If there's no more pages below and loopTop option is enabled then looping to the top
       if(!$next && options.loopBottom) $next = $firstPage;
       if($next) scrollPage($next);
@@ -124,7 +134,7 @@
      */
     PS.moveTo = (page) => {
 
-      const destiny = (isNaN(page)) ? page : $pages[page - 1];
+      const destiny = (typeof(page) != 'number') ? page : $pages[page - 1];
       if(destiny) scrollPage(destiny);
     };
 
@@ -141,7 +151,7 @@
       $lastPage = $pages[$pages.length - 1];
       // Nav containers
       $navbar = document.querySelector(options.navigation.container);
-      $listItems = Array.from($navbar.querySelectorAll('li'));
+      $listItems = Array.from($navbar.querySelectorAll('li, [anchor]'));
       $navAnchors = $listItems.map(el => el.querySelector('a'));
 
       /**
@@ -153,7 +163,7 @@
         for(let i = 0, zIndex = $pages.length, length = $pages.length; i < length; i++, zIndex--){
 
           const $el = $pages[i];
-          $el.style.zIndex = zIndex;
+          $el.style.zIndex = zIndex.toString();
           // If there's no active page, the 1st one will be the default one
           if(!i && !$active) $el.classList.add('active');
         }
@@ -190,65 +200,60 @@
       /**
        * Sliding with arrow keys, both, vertical and horizontal.
        */
-      if(options.keyboardScrolling){
-        
-        window.addEventListener('keydown', (evt) => {
-
-          const $active = $pages.find(el => el.classList.contains('active'));
-          if(!isPageTransitionRunning() && evt.target.matches('body')){
-            
-            // If keyboard scrolling is enabled, move the main page with the keyboard arrows
-            if(evt.keyCode === 38 || evt.keyCode === 33 || evt.keyCode === 37) (isScrolled('top', $active)) && moveToPrevPage();
-            else if(evt.keyCode === 40 || evt.keyCode === 34 || evt.keyCode === 39) (isScrolled('bottom', $active)) && moveToNextPage();
-            else if(evt.keyCode === 36) moveTo($firstPage);
-            else if(evt.keyCode === 35) moveTo($lastPage);
-          }
-        });
-      }
+      if(options.keyboardScrolling) keyboardNavigation();
     
       /**
        * Scrolls to the section when clicking the navigation bullet.
        */
-      document.addEventListener('click', (evt) => {
-        
-        const $el = evt.target;
-
-        if($el.closest(`${options.navigation.container} li`)){
-          preventAndStop(evt);
-
-          const $li = $el.closest(`${options.navigation.container} li`);
-          const index = Array.from($li.parentElement.children).findIndex(li => (li === $li));
-          scrollPage($pages[index]);
-        }
-
-        if(options.menu && $el.matches(`${options.menu} [data-anchor]`) || $el.closest(`${options.menu} [data-anchor]`)){
-          preventAndStop(evt);
-
-          const $anchor = $el.closest('[data-anchor]').dataset['anchor'];
-          scrollToAnchor($anchor);
-        }
-      });
-
-      document.addEventListener('touchstart', (evt) => {
-
-        const $el = evt.target;
-
-        if($el.closest('#ps-dots-nav ul li')){
-          evt.stopPropagation();
-
-          const $li = $el.closest('#ps-dots-nav ul li');
-          const index = Array.from($li.parentElement.children).findIndex(li => (li === $li));
-          scrollPage($pages[index]);
-        }
-
-        if(options.menu && $el.matches(`${options.menu} [data-anchor]`) || $el.closest(`${options.menu} [data-anchor]`)){
-          evt.stopPropagation();
-
-          const $anchor = $el.closest('[data-anchor]').dataset['anchor'];
-          scrollToAnchor($anchor);
-        }
-      });
+      document.addEventListener('click', delegatedClickEvents);
+      document.addEventListener('touchstart', delegatedClickEvents);
     };
+
+    /**
+      * Click and touch delegated events.
+      * @returns {void}
+      */
+    function delegatedClickEvents(evt){
+
+      const $el = evt.target;
+
+      const $anchorClose = $el.closest(`${options.navigation?.container} li,
+                                        ${options.navigation?.container} [anchor]`);
+
+      if($anchorClose){
+
+        const $li = $anchorClose;
+        const index = Array.from($li.parentElement.children).findIndex(li => (li === $li));
+        scrollPage($pages[index]);
+      }
+
+      if(options.menu && $el.matches(`${options.menu} [data-anchor]`) || $el.closest(`${options.menu} [data-anchor]`)){
+        evt.stopPropagation();
+
+        const $anchor = ($el.closest('[data-anchor]'))?.dataset['anchor'];
+        scrollToAnchor($anchor);
+      }
+    }
+
+    /**
+     * Handle the behavior when somebody try to navigate through the keyboard arrows.
+     * @returns {void}
+     */
+    function keyboardNavigation(){
+
+      window.addEventListener('keydown', (evt) => {
+
+        const $active = $pages.find(el => el.classList.contains('active'));
+        if(!isPageTransitionRunning() && evt.target.matches('body')){
+          
+          // If keyboard scrolling is enabled, move the main page with the keyboard arrows
+          if(evt.keyCode === 38 || evt.keyCode === 33 || evt.keyCode === 37) (isScrolled('top', $active)) && PS.moveToPrevPage();
+          else if(evt.keyCode === 40 || evt.keyCode === 34 || evt.keyCode === 39) (isScrolled('bottom', $active)) && PS.moveToNextPage();
+          else if(evt.keyCode === 36) PS.moveTo($firstPage);
+          else if(evt.keyCode === 35) PS.moveTo($lastPage);
+        }
+      });
+    }
 
     /*-------------------------------------------------------------------------------
       Core methods
@@ -289,7 +294,7 @@
      * @param {number} pageIndex
      * @returns {void}
      */
-    function activateNav(name, pageIndex){
+    function handleNav(name, pageIndex){
 
       if(options.navigation){
         
@@ -347,14 +352,14 @@
 
         pagesToMove = $pages.filter((el, index) => {
 
-          if(index < $pages.findIndex(subEl => (subEl === proc.destinyPage))) return el;
+          return (index < $pages.findIndex(subEl => (subEl === proc.destinyPage))) ? el : false;
         });
       }
       else {
         
         pagesToMove = $pages.filter((el, index) => {
 
-          if(index > $pages.findIndex(subEl => (subEl === proc.destinyPage))) return el;
+          return (index > $pages.findIndex(subEl => (subEl === proc.destinyPage))) ? el : false;
         })
       }
       return pagesToMove;
@@ -419,7 +424,7 @@
       
       // Movement execution
       performMovement(proc);
-      activateNav(proc.destinyAnchor, proc.destinyPageIndex);
+      if(options.navigation || options.navigation.dynamic) handleNav(proc.destinyAnchor, proc.destinyPageIndex);
       
       // Scroll timers
       let timeNow = new Date().getTime();
@@ -470,8 +475,7 @@
      */
     function isScrolled(type, scrollable){
 
-      if(type === 'top') return !scrollable.scrollTop;
-      else if(type === 'bottom') return ((scrollable.scrollTop + scrollable.offsetHeight) + 1) > scrollable.scrollHeight;
+      return (type === 'top') ? !scrollable.scrollTop : ((scrollable.scrollTop + scrollable.offsetHeight) + 1) > scrollable.scrollHeight;
     }
 
     /**
@@ -488,6 +492,7 @@
       if(scrollable){
         // Scroll if it's scrollable and the scrollbar is at the start/end
         if(isScrolled(check, scrollable)) scroll();
+        return;
       }
       // Moved up/down
       else scroll();
@@ -513,7 +518,7 @@
      */
     function beforePageChange(proc){
 
-      (options.beforeChange instanceof Function) && options.beforeChange.call(this, proc.activePageIndex, (proc.destinyPageIndex + 1), proc.yMovement);
+      (options.beforeSlide instanceof Function) && options.beforeSlide(proc);
     }
 
     /**
@@ -522,7 +527,7 @@
      */
     function afterPageChange(proc){
 
-      (options.afterChange instanceof Function) && options.afterChange.call(this, proc.anchorLink, (proc.destinyPageIndex + 1));
+      (options.afterSlide instanceof Function) && options.afterSlide(proc);
     }
 
     /*-------------------------------------------------------------------------------
@@ -647,7 +652,6 @@
     function setTouchCoordinates(evt, position){
 
       const touchEvent = getTouchEventCoordinates(evt);
-      position = position.replace(/^\w{1}/, (c) => c.toUpperCase());
       coord[`touch${position}Y`] = touchEvent.y;
       coord[`touch${position}X`] = touchEvent.x;
     }
@@ -659,7 +663,7 @@
      */
     function touchStartHandler(evt){
 
-      if(isReallyTouch(evt)) setTouchCoordinates(evt, 'start');
+      if(isReallyTouch(evt)) setTouchCoordinates(evt, 'Start');
     }
 
     /**
@@ -677,6 +681,7 @@
 
         return (touchStart > touchEnd) ? 'down' : ((touchEnd > touchStart) ? 'up' : false);
       }
+      return false;
     }
 
     /**
@@ -694,7 +699,7 @@
         if(!scrollable) evt.preventDefault();
         if(scrollable && !isPageTransitionRunning()){
 
-          setTouchCoordinates(evt, 'end');
+          setTouchCoordinates(evt, 'End');
           const scrollIsHorizontal = getDirection(options.direction) === 'left' || getDirection(options.direction) === 'right';
           const direction = (scrollIsHorizontal && Math.abs(coord.touchStartX - coord.touchEndX) > Math.abs(coord.touchStartY - coord.touchEndY)) // X movement bigger than Y movement?
                               ? calculateAxisTouchMovement('x', scrollable)
@@ -707,16 +712,6 @@
     /*-------------------------------------------------------------------------------
       Listeners
     -------------------------------------------------------------------------------*/
-    
-    /**
-     * Event prevention and progagation one line sentence.
-     * @param {event} evt
-     * @returns {void}
-     */
-    function preventAndStop(evt){
-      evt['preventDefault']();
-      evt['stopPropagation']();
-    }
 
     /**
      * Adds the auto scrolling action for the mouse wheel and tackpad.
@@ -725,12 +720,11 @@
      */
     function addMouseWheelHandler(){
 
-      if($container.addEventListener){
-
+      if('attachEvent' in $container) $container.attachEvent('onmousewheel', mouseWheelHandler); // IE 6/7/8
+      else {
         $container.addEventListener('mousewheel', mouseWheelHandler, false); // IE9, Chrome, Safari, Opera
         $container.addEventListener('wheel', mouseWheelHandler, false); // Firefox
       }
-      else $container.attachEvent('onmousewheel', mouseWheelHandler); // IE 6/7/8
     }
 
     /**
@@ -739,13 +733,12 @@
      * @returns {void}
      */
     function removeMouseWheelHandler(){
-        
-      if($container.addEventListener){
-
+    
+      if('detachEvent' in $container) $container.detachEvent('onmousewheel', mouseWheelHandler); // IE 6/7/8
+      else{
         $container.removeEventListener('mousewheel', mouseWheelHandler, false); // IE9, Chrome, Safari, Opera
         $container.removeEventListener('wheel', mouseWheelHandler, false); // Firefox
       }
-      else $container.detachEvent('onmousewheel', mouseWheelHandler); // IE 6/7/8
     }
 
     /**
@@ -759,7 +752,7 @@
         // Microsoft pointers
         const pointer = getMSPointer();
         $container[pointer.down] = touchStartHandler;
-        $container[pointer.move] = touchStartHandler;
+        $container[pointer.move] = touchMoveHandler;
         
         $container.ontouchstart = touchStartHandler;
         $container.ontouchmove = touchMoveHandler;
@@ -800,7 +793,7 @@
          */
         if(pageAnchor !== lastScrolledDestiny){
 
-          const page = (isNaN(pageAnchor)) ? document.getElementById(pageAnchor) : $pages[pageAnchor-1];
+          const page = ((typeof(pageAnchor) != 'number') ? document.getElementById(pageAnchor) : $pages[pageAnchor-1]);
           scrollPage(page);
         }
       }

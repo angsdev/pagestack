@@ -2,31 +2,48 @@ html,
 body {
   margin: 0;
   padding: 0;
+	overscroll-behavior-y: contain;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 #pages {
   overflow: hidden;
-  touch-action: none;
+  -ms-touch-action: none;  /* Touch detection for Windows 8 */
+      touch-action: none;   /* IE 11 on Windows Phone 8.1*/
 }
 #pages .ps-page {
   position: absolute;
   width: 100%;
   height: 100%;
   -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  transition: all 1s cubic-bezier(0.55, 0.085, 0, 0.99);
+          backface-visibility: hidden;
+          -webkit-transition: all 1s cubic-bezier(.55,.085,0,.99);
+              -moz-transition: all 1s cubic-bezier(.55,.085,0,.99);
+                -o-transition: all 1s cubic-bezier(.55,.085,0,.99);
+                   transition: all 1s cubic-bezier(.55,.085,0,.99);
 }
 #pages .ps-page.scrolled-left {
-  transform: translate3d(-100%, 0, 0);
+  -webkit-transform: translate3d(-100%, 0, 0);
+     -moz-transform: translate3d(-100%, 0, 0);
+      -ms-transform: translate3d(-100%, 0, 0);
+          transform: translate3d(-100%, 0, 0);
 }
 #pages .ps-page.scrolled-up {
-  transform: translate3d(0, -100%, 0);
+  -webkit-transform: translate3d(0, -100%, 0);
+     -moz-transform: translate3d(0, -100%, 0);
+      -ms-transform: translate3d(0, -100%, 0);
+          transform: translate3d(0, -100%, 0);
 }
 #pages .ps-page.scrolled-right {
-  transform: translate3d(100%, 0, 0);
+  -webkit-transform: translate3d(100%, 0, 0);
+     -moz-transform: translate3d(100%, 0, 0);
+      -ms-transform: translate3d(100%, 0, 0);
+          transform: translate3d(100%, 0, 0);
 }
 #pages .ps-page.scrolled-down {
-  transform: translate3d(0, 100%, 0);
+  -webkit-transform: translate3d(0, 100%, 0);
+     -moz-transform: translate3d(0, 100%, 0);
+      -ms-transform: translate3d(0, 100%, 0);
+          transform: translate3d(0, 100%, 0);
 }
 #pages .ps-page.ps-scrollable {
   height: 100%;
@@ -35,6 +52,10 @@ body {
 #pages .ps-page.ps-table {
   display: table;
 }
+
+/*
+Enables vertical centering by wrapping the content and the use of table and table-cell
+*/
 #pages .ps-page.ps-table .ps-tableCell {
   display: table-cell;
   width: 100%;
@@ -44,14 +65,14 @@ body {
 #ps-nav {
   position: fixed;
   height: -webkit-fit-content;
-  height: -moz-fit-content;
-  height: fit-content;
+  height:    -moz-fit-content;
+  height:         fit-content;
   width: -webkit-fit-content;
-  width: -moz-fit-content;
-  width: fit-content;
+  width:    -moz-fit-content;
+  width:         fit-content;
   padding-left: 0;
   opacity: 1;
-  z-index: 0;
+  z-index: 1000;
 }
 #ps-nav.left,
 #ps-nav.right {
@@ -73,7 +94,8 @@ body {
 #ps-nav.top {
   top: 17px;
 }
-#ps-nav.top li {
+#ps-nav.top li,
+#ps-nav.top [anchor] {
   display: inline-block;
 }
 #ps-nav.right {
@@ -82,10 +104,12 @@ body {
 #ps-nav.bottom {
   bottom: 17px;
 }
-#ps-nav.bottom li {
+#ps-nav.bottom li,
+#ps-nav.bottom [anchor] {
   display: inline-block;
 }
-#ps-nav li {
+#ps-nav li,
+#ps-nav [anchor] {
   position: relative;
   display: block;
   width: 14px;
@@ -93,12 +117,14 @@ body {
   margin: 7px;
   z-index: 1;
 }
-#ps-nav li:hover > .ps-tooltip {
+#ps-nav li:hover > .ps-tooltip,
+#ps-nav [anchor]:hover > .ps-tooltip {
   visibility: visible;
   opacity: 1;
-  transition: visibility 0s, opacity 0.3s ease;
+  transition: visibility 0s, opacity .3s ease;
 }
-#ps-nav li a {
+#ps-nav li a,
+#ps-nav [anchor] a {
   position: relative;
   display: block;
   width: 100%;
@@ -107,10 +133,12 @@ body {
   cursor: pointer;
   z-index: 1;
 }
-#ps-nav li a.active span {
+#ps-nav li a.active span,
+#ps-nav [anchor] a.active span {
   background: #333;
 }
-#ps-nav li a span {
+#ps-nav li a span,
+#ps-nav [anchor] a span {
   position: absolute;
   width: 8px;
   height: 8px;
@@ -121,7 +149,8 @@ body {
   border-radius: 50%;
   z-index: 1;
 }
-#ps-nav li .ps-tooltip {
+#ps-nav li .ps-tooltip,
+#ps-nav [anchor] .ps-tooltip {
   position: absolute;
   display: block;
   max-width: 220px;
@@ -134,9 +163,11 @@ body {
   opacity: 0;
   transition: visibility 0.3s, opacity 0.3s ease;
 }
-#ps-nav li .ps-tooltip.right {
+#ps-nav li .ps-tooltip.right,
+#ps-nav [anchor] .ps-tooltip.right {
   right: 20px;
 }
-#ps-nav li .ps-tooltip.left {
+#ps-nav li .ps-tooltip.left,
+#ps-nav [anchor] .ps-tooltip.left {
   left: 20px;
 }
