@@ -2,9 +2,10 @@ html,
 body {
   margin: 0;
   padding: 0;
+	overscroll-behavior-y: contain;
   -webkit-tap-highlight-color: transparent;
 }
-#ps-pages {
+#pages {
   overflow: hidden;
   -ms-touch-action: none;  /* Touch detection for Windows 8 */
       touch-action: none;   /* IE 11 on Windows Phone 8.1*/
@@ -13,15 +14,16 @@ body {
     position: absolute;
     width: 100%;
     height: 100%;
-    backface-visibility: hidden;
-    -webkit-transition:all 1s cubic-bezier(.55,.085,0,.99);
-        -moz-transition:all 1s cubic-bezier(.55,.085,0,.99);
-          -o-transition:all 1s cubic-bezier(.55,.085,0,.99);
-            transition:all 1s cubic-bezier(.55,.085,0,.99);
+    -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+    -webkit-transition: all 1s cubic-bezier(.55,.085,0,.99);
+       -moz-transition: all 1s cubic-bezier(.55,.085,0,.99);
+         -o-transition: all 1s cubic-bezier(.55,.085,0,.99);
+            transition: all 1s cubic-bezier(.55,.085,0,.99);
 
     &.scrolled-left {
       -webkit-transform: translate3d(-100%, 0, 0);
-          -moz-transform: translate3d(-100%, 0, 0);
+         -moz-transform: translate3d(-100%, 0, 0);
           -ms-transform: translate3d(-100%, 0, 0);
               transform: translate3d(-100%, 0, 0);
     }
@@ -50,9 +52,9 @@ body {
     &.ps-table {
       display: table;
 
-      /**
-       * Enables vertical centering by wrapping the content and the use of table and table-cell
-       */
+      /*
+      Enables vertical centering by wrapping the content and the use of table and table-cell
+      */
       .ps-tableCell {
         display: table-cell;
         width: 100%;
@@ -64,11 +66,15 @@ body {
 }
 #ps-nav {
   position: fixed;
-  height: fit-content;
-  width: fit-content;
+  height: -webkit-fit-content;
+  height:    -moz-fit-content;
+  height:         fit-content;
+  width: -webkit-fit-content;
+  width:    -moz-fit-content;
+  width:         fit-content;
   padding-left: 0;
   opacity: 1;
-  z-index: 100;
+  z-index: 1000;
 
   &.left,
   &.right {
@@ -77,9 +83,7 @@ body {
     margin-top: auto;
     margin-bottom: auto;
   }
-  &.up,
   &.top,
-  &.down,
   &.bottom {
     left: 0;
     right: 0;
@@ -89,26 +93,27 @@ body {
   &.left {
     left: 17px;
   }
-  &.up,
   &.top {
     top: 17px;
 
-    li {
+    li,
+    [anchor] {
       display: inline-block;
     }
   }
   &.right {
     right: 17px;
   }
-  &.down,
   &.bottom {
     bottom: 17px;
 
-    li {
+    li,
+    [anchor] {
       display: inline-block;
     }
   }
-  li {
+  li,
+  [anchor] {
     position: relative;
     display: block;
     width: 14px;

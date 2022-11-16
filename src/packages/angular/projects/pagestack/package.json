@@ -1,14 +1,16 @@
 {
-  "name": "@angsdev/vue-pagestack",
+  "name": "@angsdev/ngx-pagestack",
   "version": "1.1.1",
   "description": "An animated library to make web sites/apps based on the card shuffle concept or simply make presentations like powerpoints.",
-  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "peerDependencies": {
+    "@angular/common": "^14.2.0",
+    "@angular/core": "^14.2.0"
+  },
   "dependencies": {
-    "node-sass": "^7.0.3",
-    "sass-loader": "^13.0.2"
+    "tslib": "^2.3.0"
   },
   "keywords": [
     "pages", "stack", "pagestack", "slides", "slideshow",
@@ -35,7 +37,7 @@
   "repository": {
     "type" : "git",
     "url" : "github:angsdev/pagestack",
-    "directory": "src/vue"
+    "directory": "src/angular"
   },
   "license": "Apache-2.0"
 }
