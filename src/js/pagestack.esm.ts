@@ -280,6 +280,8 @@ const delegatedClickEvents = (evt: MouseEvent|PointerEvent|TouchEvent): void => 
                                     ${options.navigation?.container} [anchor]`);
 
   if($anchorClose){
+    evt.preventDefault();
+    evt.stopPropagation();
 
     const $li = $anchorClose as HTMLElement;
     const index = Array.from($li.parentElement!.children).findIndex(li => (li === $li));
@@ -287,6 +289,7 @@ const delegatedClickEvents = (evt: MouseEvent|PointerEvent|TouchEvent): void => 
   }
 
   if(options.menu && $el.matches(`${options.menu} [data-anchor]`) || $el.closest(`${options.menu} [data-anchor]`)){
+    evt.preventDefault();
     evt.stopPropagation();
 
     const $anchor = ($el.closest('[data-anchor]') as HTMLElement)?.dataset['anchor'];

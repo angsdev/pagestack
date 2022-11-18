@@ -221,6 +221,8 @@
                                         ${options.navigation?.container} [anchor]`);
 
       if($anchorClose){
+        evt.preventDefault();
+        evt.stopPropagation();
 
         const $li = $anchorClose;
         const index = Array.from($li.parentElement.children).findIndex(li => (li === $li));
@@ -228,6 +230,7 @@
       }
 
       if(options.menu && $el.matches(`${options.menu} [data-anchor]`) || $el.closest(`${options.menu} [data-anchor]`)){
+        evt.preventDefault();
         evt.stopPropagation();
 
         const $anchor = ($el.closest('[data-anchor]'))?.dataset['anchor'];
