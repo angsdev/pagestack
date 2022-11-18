@@ -300,6 +300,8 @@ export class PagestackService {
                                       ${this.options.navigation?.container} [anchor]`);
 
     if($anchorClose){
+      evt.preventDefault();
+      evt.stopPropagation();
 
       const $li = $anchorClose as HTMLElement;
       const index = Array.from($li.parentElement!.children).findIndex(li => (li === $li));
@@ -307,6 +309,7 @@ export class PagestackService {
     }
 
     if(this.options.menu && $el.matches(`${this.options.menu} [data-anchor]`) || $el.closest(`${this.options.menu} [data-anchor]`)){
+      evt.preventDefault();
       evt.stopPropagation();
 
       const $anchor = ($el.closest('[data-anchor]') as HTMLElement)?.dataset['anchor'];
