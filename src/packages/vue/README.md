@@ -109,12 +109,12 @@ its made like this to initialize the library only once, keeping a good performan
   - Description: Specify if the pages are changeable with the keyboard.
 
 
-- Property: ```beforeChange```
+- Property: ```beforeSlide```
   - Type: function
   - Default: ```null```
   - Description: A function to execute some instruction just before the page change.
 
-- Property: ```afterChange```
+- Property: ```afterSlide```
   - Type: function
   - Default: ```null```
   - Description: A function to execute some instruction just after the page change.
